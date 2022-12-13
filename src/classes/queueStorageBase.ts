@@ -13,7 +13,7 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-import type { IQueueStorage, IQueueTaskInStorageOptions, QueueErrorHandler, QueueExecutionHandler, QueueStorageEvent } from "../types";
+import type { IQueueStorage, IQueueTaskContext, IQueueTaskInStorageOptions, QueueErrorHandler, QueueExecutionHandler, QueueStorageEvent } from "../types";
 import type { Func } from "../types/internal";
 import type { Queue } from "./queue";
 
@@ -74,5 +74,15 @@ export abstract class QueueStorageBase implements IQueueStorage {
     /**
      * @inheritdoc
      */
-    public abstract queueTask(options: IQueueTaskInStorageOptions): PromiseLike<any>;
+    public abstract enqueueRemainingTasks(): PromiseLike<IQueueTaskContext[]>;
+
+    /**
+     * @inheritdoc
+     */
+    public abstract enqueueTask(options: IQueueTaskInStorageOptions): PromiseLike<IQueueTaskContext>;
+
+    /**
+     * @inheritdoc
+     */
+    public abstract stopAllEnqueuedTasks(): PromiseLike<any>;
 }

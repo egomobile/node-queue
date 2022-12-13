@@ -13,7 +13,7 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-import type { IQueueExecutionHandlerContext, IQueueTaskInStorageOptions } from "../types";
+import type { IQueueExecutionHandlerContext, IQueueTaskContext, IQueueTaskInStorageOptions } from "../types";
 import { QueueStorageBase } from "./queueStorageBase";
 
 interface ITaskInQueue {
@@ -27,6 +27,7 @@ enum TaskInQueueStatus {
     Running = 1,
     Succeded = 2,
     Failed = 3,
+    Stopped = 4,
 }
 
 /**
@@ -43,6 +44,10 @@ export class MemoryQueueStorage extends QueueStorageBase {
     }
 
     private executeTask(taskInQueue: ITaskInQueue) {
+        const isStopped = () => {
+            return taskInQueue.status === TaskInQueueStatus.Stopped;
+        };
+
         const executionHandlers = this.getExecutionHandlers();
         if (!executionHandlers.length) {
             return;
@@ -52,6 +57,8 @@ export class MemoryQueueStorage extends QueueStorageBase {
         const { data, key } = options;
 
         const handleError = (error: any) => {
+            const shouldRetry = !isStopped();
+
             taskInQueue.status = TaskInQueueStatus.Failed;
 
             this.getErrorHandlers().forEach((handler) => {
@@ -65,10 +72,16 @@ export class MemoryQueueStorage extends QueueStorageBase {
                 }
             });
 
-            this.executeTask(taskInQueue);
+            if (shouldRetry) {
+                this.executeTask(taskInQueue);
+            }
         };
 
         setImmediate(() => {
+            if (isStopped()) {
+                return;
+            }
+
             taskInQueue.status = TaskInQueueStatus.Queued;
 
             const context: IQueueExecutionHandlerContext = {
@@ -100,7 +113,27 @@ export class MemoryQueueStorage extends QueueStorageBase {
     /**
      * @inheritdoc
      */
-    public async queueTask(options: IQueueTaskInStorageOptions): Promise<any> {
+    public async enqueueRemainingTasks(): Promise<IQueueTaskContext[]> {
+        const result: IQueueTaskContext[] = [];
+
+        const tasksWithQueuedStatus = this._tasksInQueue.filter((t) => {
+            return t.status === TaskInQueueStatus.Queued;
+        });
+        tasksWithQueuedStatus.forEach((t) => {
+            this.executeTask({
+                "id": t.id,
+                "options": t.options,
+                "status": t.status
+            });
+        });
+
+        return result;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public async enqueueTask(options: IQueueTaskInStorageOptions): Promise<IQueueTaskContext> {
         const id = String(this._nextId++);
 
         const taskInQueue: ITaskInQueue = {
@@ -111,5 +144,23 @@ export class MemoryQueueStorage extends QueueStorageBase {
 
         this._tasksInQueue.push(taskInQueue);
         this.executeTask(taskInQueue);
+
+        return {
+        };
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public async stopAllEnqueuedTasks(): Promise<any> {
+        const tasksToStop = this._tasksInQueue.filter((t) => {
+            return t.status === TaskInQueueStatus.Queued ||
+                t.status === TaskInQueueStatus.Running ||
+                t.status === TaskInQueueStatus.Failed;
+        });
+
+        tasksToStop.forEach((t) => {
+            t.status = TaskInQueueStatus.Stopped;
+        });
     }
 }

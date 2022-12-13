@@ -61,13 +61,25 @@ export interface IQueueStorage {
     on(event: QueueStorageEvent, handler: Func): this;
 
     /**
+     * Enqueues all remaing tasks, which are not finished or aborted.
+     *
+     * @returns {IQueueTaskContext[]|PromiseLike<IQueueTaskContext[]>} The contextes or the promise with it.
+     */
+    enqueueRemainingTasks(): IQueueTaskContext[] | PromiseLike<IQueueTaskContext[]>;
+
+    /**
      * Queues a task.
      *
      * @param {IQueueTaskInStorageOptions} options The options.
      *
      * @returns {IQueueTaskContext|PromiseLike<IQueueTaskContext>} The context or the promise with it.
      */
-    queueTask: (options: IQueueTaskInStorageOptions) => IQueueTaskContext | PromiseLike<IQueueTaskContext>;
+    enqueueTask: (options: IQueueTaskInStorageOptions) => IQueueTaskContext | PromiseLike<IQueueTaskContext>;
+
+    /**
+     * Stops all enqueued tasks.
+     */
+    stopAllEnqueuedTasks(): any;
 }
 
 /**

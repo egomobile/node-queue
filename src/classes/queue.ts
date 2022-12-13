@@ -231,7 +231,7 @@ export class Queue {
         const { storage } = this;
 
         return Promise.resolve(
-            storage.queueTask({
+            storage.enqueueTask({
                 "data": options?.data || {},
                 key
             })
@@ -313,6 +313,8 @@ export class Queue {
             return false;  // already running
         }
 
+        await this.storage.enqueueRemainingTasks();
+
         this._isRunning = true;
         return true;
     }
@@ -326,6 +328,8 @@ export class Queue {
         if (!this.isRunning) {
             return false;  // not running yet
         }
+
+        await this.storage.stopAllEnqueuedTasks();
 
         this._isRunning = false;
         return true;
