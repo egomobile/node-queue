@@ -13,6 +13,8 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 
+export type Constructor<T = any> = (new (...args: any[]) => T);
+
 export type Func = (...args: any[]) => any;
 
 export type Optional<T = any> = T | undefined;

@@ -15,7 +15,6 @@
 
 import type { IQueueStorage, IQueueTaskContext, IQueueTaskInStorageOptions, QueueErrorHandler, QueueExecutionHandler, QueueStorageEvent } from "../types";
 import type { Func } from "../types/internal";
-import type { Queue } from "./queue";
 
 /**
  * A queue stroage base class.
@@ -23,14 +22,6 @@ import type { Queue } from "./queue";
 export abstract class QueueStorageBase implements IQueueStorage {
     private readonly _errorHandlers: QueueErrorHandler[] = [];
     private readonly _executionHandlers: QueueExecutionHandler[] = [];
-
-    /**
-     * Initializes a new instance
-     *
-     * @param {Queue} queue The underlying queue.
-     */
-    public constructor(public readonly queue: Queue) {
-    }
 
     /**
      * Returns a copy of the list of error handlers.

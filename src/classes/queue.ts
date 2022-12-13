@@ -14,20 +14,20 @@
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 import type { IQueueStorage, IQueueTaskContext, QueueErrorHandler, QueueEvent, QueueTask, SyncQueueStorageProvider } from "../types";
-import type { Func, Nilable } from "../types/internal";
+import type { Constructor, Func, Nilable } from "../types/internal";
 import { isNil } from "../utils/internal";
 import { MemoryQueueStorage } from "./memoryQueueStorage";
 
 /**
  * Options for a `Queue` instance.
  */
-export interface IQueueOptions {
+export interface IQueueOptions<TStorage extends IQueueStorage = IQueueStorage> {
     /**
      * A custom storage or a function, which provides it.
      *
      * If not defined, a new instance of `MemoryQueueStorage` class is created.
      */
-    storage?: Nilable<IQueueStorage | SyncQueueStorageProvider>;
+    storageClass?: Nilable<Constructor<TStorage>>;
 }
 
 /**
@@ -99,30 +99,25 @@ export class Queue {
      * @param {Nilable<IQueueOptions>} [options] Custom options.
      */
     public constructor(options?: Nilable<IQueueOptions>) {
-        if (isNil(options?.storage)) {
+        const storageClass = options?.storageClass;
+
+        if (isNil(storageClass)) {
             // default => MemoryQueueStorage
 
-            const memStorage = new MemoryQueueStorage(this);
+            const memStorage = new MemoryQueueStorage();
 
             this.getStorage = () => {
                 return memStorage;
             };
         }
         else {
-            if (typeof options?.storage === "function") {
-                const provider = options.storage as SyncQueueStorageProvider;
+            // custom class
 
-                this.getStorage = () => {
-                    return provider();
-                };
-            }
-            else {
-                const storage = options!.storage;
+            const storage = new storageClass();
 
-                this.getStorage = () => {
-                    return storage;
-                };
-            }
+            this.getStorage = () => {
+                return storage;
+            };
         }
 
         this.init();
