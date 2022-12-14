@@ -86,6 +86,10 @@ export interface IQueueStorage {
  * A context of a `QueueTask`.
  */
 export interface IQueueTaskContext {
+    /**
+     * The ID of the task.
+     */
+    id: any;
 }
 
 /**

@@ -146,6 +146,7 @@ export class MemoryQueueStorage extends QueueStorageBase {
         this.executeTask(taskInQueue);
 
         return {
+            id
         };
     }
 
