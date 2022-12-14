@@ -154,6 +154,10 @@ export class Queue {
 
         // handle executions
         storage.on("execute", ({ data, taskKey }) => {
+            if (!this.isRunning) {
+                return;
+            }
+
             const task = this._tasks[taskKey];
             if (typeof task !== "function") {
                 return;
