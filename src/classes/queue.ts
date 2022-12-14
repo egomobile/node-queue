@@ -15,7 +15,6 @@
 
 import type { IQueueStorage, IQueueTaskContext, QueueErrorHandler, QueueEvent, QueueTask, SyncQueueStorageProvider } from "../types";
 import type { Constructor, Func, Nilable } from "../types/internal";
-import { isNil } from "../utils/internal";
 import { MemoryQueueStorage } from "./memoryQueueStorage";
 
 /**
@@ -28,6 +27,10 @@ export interface IQueueOptions<TStorage extends IQueueStorage = IQueueStorage> {
      * If not defined, a new instance of `MemoryQueueStorage` class is created.
      */
     storageClass?: Nilable<Constructor<TStorage>>;
+    /**
+     * One or more arguments for the class contructor of `storageClass`.
+     */
+    storageClassArgs?: Nilable<any[]>;
 }
 
 /**
@@ -99,21 +102,12 @@ export class Queue {
      * @param {Nilable<IQueueOptions>} [options] Custom options.
      */
     public constructor(options?: Nilable<IQueueOptions>) {
-        const storageClass = options?.storageClass;
+        const storageClass = options?.storageClass || MemoryQueueStorage;
+        const storageClassArgs = options?.storageClassArgs || [];
 
-        if (isNil(storageClass)) {
-            // default => MemoryQueueStorage
-
-            const memStorage = new MemoryQueueStorage();
-
-            this.getStorage = () => {
-                return memStorage;
-            };
-        }
-        else {
-            // custom class
-
-            const storage = new storageClass();
+        // storage
+        {
+            const storage = new storageClass(...storageClassArgs);
 
             this.getStorage = () => {
                 return storage;

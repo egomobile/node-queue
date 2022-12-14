@@ -1,5 +1,9 @@
 # Change Log (@egomobile/queue)
 
+## 3.3.0
+
+- add `storageClassArgs` to [IQueueOptions](https://egomobile.github.io/node-queue/interfaces/IQueueOptions.html)
+
 ## 3.2.1
 
 - code improvements
