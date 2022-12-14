@@ -1,5 +1,9 @@
 # Change Log (@egomobile/queue)
 
+## 3.2.1
+
+- code improvements
+
 ## 3.1.0
 
 - add `id` property to [IQueueTaskContext](https://egomobile.github.io/node-queue/interfaces/IQueueTaskContext.html)
