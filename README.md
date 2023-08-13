@@ -37,6 +37,9 @@ async function main() {
     },
   });
 
+  // anything is prepared, lets start the queue
+  await queue.start();
+
   // first enqueue 2nd task
   await queue.enqueue("my task 2", {
     buzz: 5979,
